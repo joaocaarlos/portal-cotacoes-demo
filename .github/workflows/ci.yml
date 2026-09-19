@@ -1,0 +1,72 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  verificar:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+          cache: pip
+
+      - name: Instalar dependências
+        run: pip install -r requirements.txt
+
+      - name: Compilar todos os módulos
+        run: python -m compileall -q app.py auth.py config.py metricas.py gerar_demo.py aplicar_migracoes.py seed_usuarios.py smoke_test.py
+
+      - name: Banco de demonstração se constrói do zero
+        run: python gerar_demo.py ci.db
+
+      - name: Migrações são idempotentes
+        run: |
+          python aplicar_migracoes.py ci.db
+          python aplicar_migracoes.py ci.db
+
+      - name: Smoke test
+        env:
+          AMBIENTE: desenvolvimento
+        run: python smoke_test.py ci.db
+
+      - name: Nenhuma senha de teste sobrou no código
+        run: |
+          if grep -rInE "(comprador123|almox123|gestor123|admin123)" \
+               --include='*.py' --include='*.js' --include='*.md' --include='*.html' \
+               --exclude='auth.py' --exclude='smoke_test.py' --exclude='CHANGELOG.md' . ; then
+            echo "::error::Credencial de teste encontrada fora da lista de senhas proibidas"
+            exit 1
+          fi
+          echo "ok — nenhuma credencial de teste no código"
+
+  imagem:
+    runs-on: ubuntu-latest
+    needs: verificar
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build da imagem Docker
+        run: docker build -t portal-cotacoes:ci .
+      - name: A imagem sobe e responde /healthz
+        run: |
+          docker run -d --name portal -p 8000:8000 \
+            -e AMBIENTE=desenvolvimento -e APP_SECRET=ci-somente-para-teste \
+            -e DB_PATH=/dados/demo.db portal-cotacoes:ci
+          for i in $(seq 1 30); do
+            if curl -fsS http://localhost:8000/healthz > /dev/null; then
+              echo "subiu na tentativa $i"
+              curl -fsS http://localhost:8000/readyz
+              docker rm -f portal
+              exit 0
+            fi
+            sleep 2
+          done
+          echo "::error::contêiner não respondeu em 60s"
+          docker logs portal
+          exit 1

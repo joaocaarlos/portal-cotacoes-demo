@@ -1,0 +1,49 @@
+# Subida completa do portal. `docker compose up -d` e está no ar em :8000.
+#
+# Produção com domínio e HTTPS: descomente o serviço `proxy` no final,
+# aponte o DNS para a máquina e o Caddy resolve o certificado sozinho.
+
+services:
+  portal:
+    build: .
+    image: portal-cotacoes:latest
+    restart: unless-stopped
+    env_file:
+      - path: .env
+        required: false
+    environment:
+      DB_PATH: /dados/demo.db
+      AMBIENTE: desenvolvimento   # troque para producao com dados reais
+    volumes:
+      - dados:/dados                 # o banco persiste fora do contêiner
+      - ./backups:/backups           # destino do backup.sh
+    ports:
+      - "127.0.0.1:8000:8000"        # só localhost; quem expõe é o proxy
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request,sys; sys.exit(0 if urllib.request.urlopen('http://127.0.0.1:8000/healthz', timeout=4).status==200 else 1)"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 15s
+
+volumes:
+  dados:
+
+# ---------------------------------------------------------------------------
+# HTTPS automático. Crie um Caddyfile ao lado com:
+#
+#   cotacoes.suaempresa.com.br {
+#       reverse_proxy portal:8000
+#   }
+#
+#  proxy:
+#    image: caddy:2-alpine
+#    restart: unless-stopped
+#    ports: ["80:80", "443:443"]
+#    volumes:
+#      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+#      - caddy_data:/data
+#    depends_on: [portal]
+#
+# volumes:
+#   caddy_data:

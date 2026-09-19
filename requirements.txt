@@ -1,0 +1,6 @@
+# Runtime do portal. Versões fixadas: o que passou no CI é o que roda em produção.
+Flask==3.1.3
+Werkzeug==3.1.8
+gunicorn==26.2.0          # servidor WSGI em produção (Linux/Docker)
+waitress==3.0.2           # alternativa para rodar em Windows Server
+openpyxl==3.1.5           # leitura das planilhas no ETL (consolidar.py)

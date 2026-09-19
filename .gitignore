@@ -1,0 +1,22 @@
+# Ambiente
+.venv/
+venv/
+__pycache__/
+*.pyc
+.env
+
+# Bancos de trabalho. O demo.db É versionado — é sintético e serve de demonstração.
+cotacoes.db
+*.db-wal
+*.db-shm
+*.db.bak
+
+# Backups e extrações
+backups/
+*.xlsx
+*.xlsm
+*.csv
+
+# Sistema
+.DS_Store
+Thumbs.db
