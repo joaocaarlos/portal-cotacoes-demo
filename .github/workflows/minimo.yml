@@ -1,7 +1,0 @@
-name: minimo
-on: push
-jobs:
-  ola:
-    runs-on: ubuntu-latest
-    steps:
-      - run: echo ok
