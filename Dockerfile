@@ -16,21 +16,21 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 COPY . .
 
-# O banco vive em volume, fora da imagem. DB_PATH aponta para lá.
+# O banco vive fora da imagem, em /dados. Em hospedagem sem disco persistente
+# o entrypoint recria a partir do banco que veio na imagem a cada boot.
 RUN mkdir -p /dados && chown -R portal:portal /app /dados
-ENV DB_PATH=/dados/cotacoes.db \
-    AMBIENTE=producao \
+ENV DB_PATH=/dados/demo.db \
+    AMBIENTE=demonstracao \
     PORT=8000
 
 USER portal
 EXPOSE 8000
 
+# A porta sai de $PORT porque Render, Koyeb e Spaces atribuem a porta em runtime.
 HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
-  CMD python -c "import urllib.request,sys; sys.exit(0 if urllib.request.urlopen('http://127.0.0.1:8000/healthz', timeout=4).status==200 else 1)"
+  CMD python -c "import os,urllib.request,sys; p=os.environ.get('PORT','8000'); sys.exit(0 if urllib.request.urlopen(f'http://127.0.0.1:{p}/healthz', timeout=4).status==200 else 1)"
 
-# entrypoint aplica migrações pendentes antes de servir.
+# O entrypoint aplica as migrações e sobe o gunicorn na porta do ambiente.
+# Sem CMD de propósito: a forma exec do CMD não expandiria $PORT.
 COPY entrypoint.sh /entrypoint.sh
 ENTRYPOINT ["/bin/sh", "/entrypoint.sh"]
-CMD ["gunicorn", "--workers", "2", "--threads", "4", "--timeout", "120", \
-     "--access-logfile", "-", "--error-logfile", "-", \
-     "--bind", "0.0.0.0:8000", "app:app"]

@@ -13,7 +13,15 @@ e um CSS, servidos do próprio domínio.
 > **Este repositório acompanha um banco de demonstração com dados 100% sintéticos.**
 > Nenhuma empresa, fornecedor, preço ou pessoa real. Gerado por `gerar_demo.py`.
 
-## Testar em 4 comandos
+## Testar online
+
+[![Deploy to Render](https://render.com/images/deploy-to-render-button.svg)](https://render.com/deploy?repo=https://github.com/joaocaarlos/portal-cotacoes-demo)
+
+Um clique sobe a aplicação no plano gratuito do Render, com tudo já configurado
+pelo `render.yaml`. Outras opções gratuitas (Hugging Face Spaces, Koyeb, Fly.io)
+estão em **[HOSPEDAGEM.md](HOSPEDAGEM.md)**.
+
+## Testar local, em 4 comandos
 
 ```bash
 git clone https://github.com/joaocaarlos/portal-cotacoes-demo.git
@@ -169,6 +177,7 @@ interno de uma empresa e não serviria para mais ninguém.
 
 ## Documentação
 
+- **[HOSPEDAGEM.md](HOSPEDAGEM.md)** — subir de graça no Render, Spaces, Koyeb ou Fly.io
 - **[DEPLOY.md](DEPLOY.md)** — Docker, Linux, Windows Server, HTTPS, backup, checklist
 - **[SECURITY.md](SECURITY.md)** — controles implementados e limitações conhecidas
 - **[MULTI_TENANT.md](MULTI_TENANT.md)** — o que existe, o que falta e quanto custa

@@ -1,0 +1,45 @@
+# Blueprint do Render — https://render.com/docs/blueprint-spec
+#
+# Sobe o portal como serviço web Docker no plano gratuito.
+# No painel: New → Blueprint → aponte para este repositório. Nada a preencher.
+#
+# Plano gratuito: a instância hiberna após ~15 min sem acesso e o primeiro
+# request seguinte demora cerca de um minuto para responder. O disco é efêmero,
+# então o banco volta ao estado original a cada boot — para uma demonstração
+# isso é conveniente: qualquer bagunça se desfaz sozinha.
+
+services:
+  - type: web
+    name: portal-cotacoes-demo
+    runtime: docker
+    plan: free
+    region: oregon
+    dockerfilePath: ./Dockerfile
+    healthCheckPath: /healthz
+    envVars:
+      # Demonstração, não produção: o banco é sintético e as contas são públicas.
+      - key: AMBIENTE
+        value: demonstracao
+
+      # Trava o envio de e-mail. A demo é pública — sem isto, qualquer visitante
+      # dispararia cotação de verdade para os endereços cadastrados.
+      - key: DRY_RUN
+        value: "1"
+
+      # O Render termina TLS e envia X-Forwarded-Proto; o ProxyFix no app.py lê.
+      - key: COOKIE_SECURE
+        value: "1"
+
+      # Gerado pelo Render e mantido entre deploys: as sessões sobrevivem a um
+      # redeploy em vez de morrerem com um segredo novo a cada boot.
+      - key: APP_SECRET
+        generateValue: true
+
+      - key: DB_PATH
+        value: /dados/demo.db
+
+      - key: ORG_NOME
+        value: Portal de Cotações
+
+      - key: ORG_SUBTITULO
+        value: Demonstração pública
