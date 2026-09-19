@@ -1,0 +1,11 @@
+# Scripts executados dentro do contêiner Linux precisam de LF.
+# Sem isto, um clone em Windows com core.autocrlf=true grava CRLF e o shebang
+# quebra com "no such file or directory" — erro que não diz o que aconteceu.
+*.sh            text eol=lf
+entrypoint.sh   text eol=lf
+Dockerfile      text eol=lf
+*.yml           text eol=lf
+*.yaml          text eol=lf
+
+# O banco de demonstração é binário; nunca normalizar.
+*.db            binary
